@@ -1,0 +1,2 @@
+# ydswords
+yds kelimeleri için
