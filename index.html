@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YDS & YÖKDİL Kelime Ustası</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .flip-card {
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 2rem;
+            border-radius: 0.75rem;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .correct-answer {
+            background-color: #10b981 !important; /* Tailwind green-500 */
+            border-color: #059669 !important; /* Tailwind green-600 */
+        }
+        .wrong-answer {
+            background-color: #ef4444 !important; /* Tailwind red-500 */
+            border-color: #dc2626 !important; /* Tailwind red-600 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col items-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl mx-auto">
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-cyan-400">YDS & YÖKDİL Kelime Ustası</h1>
+            <p class="text-gray-400 mt-2">Flashcard ve Test yöntemleriyle kritik sınav kelimelerini öğrenin.</p>
+        </header>
+
+        <!-- Mod Seçimi -->
+        <div class="flex justify-center bg-gray-800 p-1 rounded-lg mb-6 max-w-sm mx-auto">
+            <button id="flashcard-mode-btn" class="w-1/2 py-2 px-4 rounded-md font-semibold transition duration-300">Flashcard Modu</button>
+            <button id="quiz-mode-btn" class="w-1/2 py-2 px-4 rounded-md font-semibold transition duration-300">Test Modu</button>
+        </div>
+
+        <!-- Kategori Seçimi -->
+        <div id="category-buttons" class="flex flex-wrap justify-center gap-2 mb-6">
+            <!-- Kategoriler buraya JS ile eklenecek -->
+        </div>
+
+        <!-- ANA İÇERİK BÖLÜMÜ -->
+        <main id="main-content">
+            <!-- Flashcard Modu -->
+            <div id="flashcard-container">
+                <div id="flashcard" class="flip-card w-full h-64 md:h-72 bg-transparent cursor-pointer rounded-xl shadow-lg shadow-cyan-500/10">
+                    <div class="flip-card-inner">
+                        <div id="card-front" class="flip-card-front bg-gray-800 border border-gray-700">
+                            <h2 id="word" class="text-4xl md:text-5xl font-bold text-center text-white">Kelime</h2>
+                            <p class="mt-4 text-gray-500">Anlamını görmek için karta tıkla</p>
+                        </div>
+                        <div id="card-back" class="flip-card-back bg-cyan-900/50 border border-cyan-700">
+                            <p id="meaning" class="text-2xl md:text-3xl font-semibold text-center text-cyan-300">Anlam</p>
+                            <p id="word-type" class="mt-2 text-lg text-gray-400 capitalize">(Kelime Türü)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <div class="flex justify-center items-center gap-4">
+                        <button id="prev-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        </button>
+                        <p id="progress" class="text-lg font-medium text-gray-400">1 / 100</p>
+                        <button id="next-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                    <button id="show-answer-btn" class="mt-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-lg transition duration-200 text-lg">
+                        Cevabı Göster
+                    </button>
+                </div>
+            </div>
+
+            <!-- Test Modu -->
+            <div id="quiz-container" class="hidden">
+                 <div class="bg-gray-800 border border-gray-700 p-8 rounded-xl shadow-lg min-h-[20rem] flex flex-col justify-center">
+                    <p id="quiz-progress" class="text-right text-sm text-gray-400 mb-4"></p>
+                    <p id="question-text" class="text-2xl text-center text-cyan-300 font-semibold mb-6">Soru metni burada olacak.</p>
+                    <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Seçenekler buraya JS ile eklenecek -->
+                    </div>
+                    <div id="feedback-container" class="mt-6 text-center">
+                        <p id="feedback-text" class="text-lg font-semibold h-6"></p>
+                        <button id="next-question-btn" class="hidden mt-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg transition duration-200">Sonraki Soru</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sonuç Ekranı -->
+            <div id="results-container" class="hidden text-center bg-gray-800 p-8 rounded-xl">
+                 <h2 class="text-3xl font-bold text-cyan-400">Test Bitti!</h2>
+                 <p id="score-text" class="text-2xl mt-4">Skorunuz: <span id="final-score" class="font-bold">0</span> / <span id="total-questions" class="font-bold">0</span></p>
+                 <p id="result-message" class="text-lg mt-2 text-gray-300"></p>
+                 <button id="restart-quiz-btn" class="mt-8 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-lg transition duration-200">Tekrar Başla</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const allWords = {
+            'Tümü': [],
+            'İsimler': [
+                { word: 'Access', meaning: 'Erişim, ulaşım, giriş' }, { word: 'Achievement', meaning: 'Başarı, kazanım' }, { word: 'Addiction', meaning: 'Bağımlılık' }, { word: 'Advance', meaning: 'İlerleme, gelişme' }, { word: 'Alteration', meaning: 'Değişiklik, değiştirme' }, { word: 'Assumption', meaning: 'Varsayım, sanı' }, { word: 'Challenge', meaning: 'Zorluk, meydan okuma' }, { word: 'Clarity', meaning: 'Netlik, berraklık' }, { word: 'Cohesion', meaning: 'Uyum, bütünlük' }, { word: 'Compulsion', meaning: 'Zorlama, dürtü' }, { word: 'Conclusion', meaning: 'Sonuç, kanı' }, { word: 'Consequence', meaning: 'Sonuç, netice' }, { word: 'Controversy', meaning: 'Tartışma, anlaşmazlık' }, { word: 'Cure', meaning: 'Tedavi, çare' }, { word: 'Decline', meaning: 'Düşüş, azalma' }, { word: 'Defect', meaning: 'Kusur, hata' }, { word: 'Deficiency', meaning: 'Eksiklik, yetersizlik' }, { word: 'Deterioration', meaning: 'Kötüleşme, bozulma' }, { word: 'Diversity', meaning: 'Çeşitlilik, farklılık' }, { word: 'Drawback', meaning: 'Dezavantaj, sakınca' }, { word: 'Efficacy', meaning: 'Etkililik, tesir' }, { word: 'Evidence', meaning: 'Kanıt, delil' }, { word: 'Exception', meaning: 'İstisna' }, { word: 'Exploitation', meaning: 'Sömürü, faydalanma' }, { word: 'Expenditure', meaning: 'Harcama, masraf' }, { word: 'Frustration', meaning: 'Hüsran, hayal kırıklığı' }, { word: 'Implication', meaning: 'Çıkarım, etki, sonuç' }, { word: 'Incentive', meaning: 'Teşvik, özendirici' }, { word: 'Insight', meaning: 'İçgörü, anlayış' }, { word: 'Jeopardy', meaning: 'Tehlike, risk' }, { word: 'Justification', meaning: 'Gerekçe' }, { word: 'Landmark', meaning: 'Dönüm noktası' }, { word: 'Maintenance', meaning: 'Bakım, sürdürme' }, { word: 'Measure', meaning: 'Önlem, ölçü' }, { word: 'Notion', meaning: 'Kavram, fikir' }, { word: 'Objective', meaning: 'Amaç, hedef' }, { word: 'Obstacle', meaning: 'Engel' }, { word: 'Outcome', meaning: 'Sonuç, netice' }, { word: 'Precaution', meaning: 'Önlem, tedbir' }, { word: 'Prevalence', meaning: 'Yaygınlık, sıklık' }, { word: 'Prospect', meaning: 'Olasılık, umut' }, { word: 'Recognition', meaning: 'Tanıma, kabul' }, { word: 'Regulation', meaning: 'Düzenleme, kural' }, { word: 'Remnant', meaning: 'Kalıntı, artık' }, { word: 'Requirement', meaning: 'Gereklilik, şart' }, { word: 'Scarcity', meaning: 'Kıtlık, azlık' }, { word: 'Shift', meaning: 'Değişim' }, { word: 'Significance', meaning: 'Önem' }, { word: 'Supply', meaning: 'Arz, tedarik' }, { word: 'Suspicion', meaning: 'Şüphe, kuşku' }, { word: 'Tendency', meaning: 'Eğilim' }, { word: 'Threat', meaning: 'Tehdit' }, { word: 'Trait', meaning: 'Özellik, nitelik' }, { word: 'Violation', meaning: 'İhlal' }
+            ],
+            'Sıfatlar': [
+                { word: 'Accurate', meaning: 'Doğru, kesin' }, { word: 'Adequate', meaning: 'Yeterli, uygun' }, { word: 'Ambiguous', meaning: 'Belirsiz, muğlak' }, { word: 'Applicable', meaning: 'Uygulanabilir' }, { word: 'Compelling', meaning: 'İkna edici, zorlayıcı' }, { word: 'Considerable', meaning: 'Önemli, hatırı sayılır' }, { word: 'Consistent', meaning: 'Tutarlı, istikrarlı' }, { word: 'Controversial', meaning: 'Tartışmalı' }, { word: 'Crucial', meaning: 'Çok önemli, hayati' }, { word: 'Delicate', meaning: 'Hassas, narin' }, { word: 'Distinct', meaning: 'Belirgin, farklı' }, { word: 'Dramatic', meaning: 'Çarpıcı, önemli' }, { word: 'Eager', meaning: 'İstekli, hevesli' }, { word: 'Elaborate', meaning: 'Ayrıntılı, detaylı' }, { word: 'Essential', meaning: 'Temel, çok önemli' }, { word: 'Excessive', meaning: 'Aşırı, fazla' }, { word: 'Exhausted', meaning: 'Tükenmiş, yorgun' }, { word: 'Hectic', meaning: 'Yoğun, telaşlı' }, { word: 'Immense', meaning: 'Devasa, çok büyük' }, { word: 'Inconclusive', meaning: 'Sonuçsuz, yetersiz' }, { word: 'Indispensable', meaning: 'Vazgeçilmez, zorunlu' }, { word: 'Intricate', meaning: 'Karmaşık, girift' }, { word: 'Legitimate', meaning: 'Meşru, yasal' }, { word: 'Massive', meaning: 'Çok büyük, devasa' }, { word: 'Mutual', meaning: 'Karşılıklı' }, { word: 'Notable', meaning: 'Dikkate değer' }, { word: 'Notorious', meaning: 'Kötü şöhretli' }, { word: 'Observable', meaning: 'Gözlemlenebilir' }, { word: 'Pervasive', meaning: 'Yaygın' }, { word: 'Plausible', meaning: 'Makul, akla yatkın' }, { word: 'Potent', meaning: 'Güçlü, etkili' }, { word: 'Profound', meaning: 'Derin, esaslı' }, { word: 'Prominent', meaning: 'Önemli, öne çıkan' }, { word: 'Redundant', meaning: 'Gereksiz, lüzumsuz' }, { word: 'Relevant', meaning: 'İlgili, alakalı' }, { word: 'Reluctant', meaning: 'İsteksiz, gönülsüz' }, { word: 'Severe', meaning: 'Şiddetli, sert' }, { word: 'Significant', meaning: 'Önemli, anlamlı' }, { word: 'Subtle', meaning: 'Hemen göze çarpmayan, ince' }, { word: 'Sufficient', meaning: 'Yeterli' }, { word: 'Sustainable', meaning: 'Sürdürülebilir' }, { word: 'Tremendous', meaning: 'Muazzam, çok büyük' }, { word: 'Urgent', meaning: 'Acil' }, { word: 'Vague', meaning: 'Belirsiz, net olmayan' }, { word: 'Viable', meaning: 'Uygulanabilir, yaşayabilir' }, { word: 'Vulnerable', meaning: 'Savunmasız, hassas' }, { word: 'Worthwhile', meaning: 'Değer, zahmete değer' }
+            ],
+            'Fiiller': [
+                { word: 'Abolish', meaning: 'Yürürlükten kaldırmak' }, { word: 'Accelerate', meaning: 'Hızlandırmak' }, { word: 'Acknowledge', meaning: 'Kabul etmek, tanımak' }, { word: 'Acquire', meaning: 'Edinmek, elde etmek' }, { word: 'Adapt', meaning: 'Uyum sağlamak' }, { word: 'Alleviate', meaning: 'Hafifletmek, dindirmek' }, { word: 'Alter', meaning: 'Değiştirmek' }, { word: 'Boost', meaning: 'Artırmak, yükseltmek' }, { word: 'Confront', meaning: 'Yüzleşmek' }, { word: 'Constitute', meaning: 'Oluşturmak' }, { word: 'Convey', meaning: 'İletmek, aktarmak' }, { word: 'Deteriorate', meaning: 'Kötüleşmek, bozulmak' }, { word: 'Determine', meaning: 'Belirlemek, saptamak' }, { word: 'Diminish', meaning: 'Azalmak, azaltmak' }, { word: 'Discriminate', meaning: 'Ayrımcılık yapmak' }, { word: 'Display', meaning: 'Sergilemek, göstermek' }, { word: 'Disrupt', meaning: 'Bozmak, aksatmak' }, { word: 'Distinguish', meaning: 'Ayırt etmek' }, { word: 'Eliminate', meaning: 'Elemek, ortadan kaldırmak' }, { word: 'Emerge', meaning: 'Ortaya çıkmak' }, { word: 'Emphasise', meaning: 'Vurgulamak' }, { word: 'Encompass', meaning: 'Kapsamak, içermek' }, { word: 'Encounter', meaning: 'Karşılaşmak' }, { word: 'Enhance', meaning: 'Artırmak, geliştirmek' }, { word: 'Ensure', meaning: 'Sağlamak, garantiye almak' }, { word: 'Eradicate', meaning: 'Kökünü kurutmak, yok etmek' }, { word: 'Evolve', meaning: 'Evrim geçirmek, gelişmek' }, { word: 'Exploit', meaning: 'Sömürmek, faydalanmak' }, { word: 'Foster', meaning: 'Geliştirmek, teşvik etmek' }, { word: 'Hinder', meaning: 'Engellemek' }, { word: 'Implement', meaning: 'Uygulamak' }, { word: 'Imply', meaning: 'İma etmek' }, { word: 'Initiate', meaning: 'Başlatmak' }, { word: 'Overcome', meaning: 'Üstesinden gelmek' }, { word: 'Perceive', meaning: 'Algılamak' }, { word: 'Promote', meaning: 'Teşvik etmek, terfi ettirmek' }, { word: 'Provoke', meaning: 'Kışkırtmak, neden olmak' }, { word: 'Recall', meaning: 'Hatırlamak' }, { word: 'Relieve', meaning: 'Rahatlatmak, hafifletmek' }, { word: 'Resolve', meaning: 'Çözmek, kararlaştırmak' }, { word: 'Reveal', meaning: 'Ortaya çıkarmak' }, { word: 'Seek', meaning: 'Aramak, peşinde olmak' }, { word: 'Stimulate', meaning: 'Uyarmak, canlandırmak' }, { word: 'Surpass', meaning: 'Aşmak, geçmek' }, { word: 'Sustain', meaning: 'Sürdürmek' }, { word: 'Tackle', meaning: 'Ele almak, mücadele etmek' }, { word: 'Trigger', meaning: 'Tetiklemek' }, { word: 'Undergo', meaning: '(Değişim) geçirmek' }, { word: 'Undermine', meaning: 'Zayıflatmak, baltalamak' }, { word: 'Utilise', meaning: 'Kullanmak, faydalanmak' }
+            ],
+            'Zarflar': [
+                { word: 'Accurately', meaning: 'Doğru bir şekilde' }, { word: 'Adequately', meaning: 'Yeterli bir şekilde' }, { word: 'Adversely', meaning: 'Olumsuz bir şekilde' }, { word: 'Arguably', meaning: 'Muhtemelen' }, { word: 'Completely', meaning: 'Tamamen' }, { word: 'Considerably', meaning: 'Önemli ölçüde' }, { word: 'Consistently', meaning: 'Tutarlı bir şekilde' }, { word: 'Constantly', meaning: 'Sürekli olarak' }, { word: 'Conventionally', meaning: 'Geleneksel olarak' }, { word: 'Dramatically', meaning: 'Çarpıcı bir şekilde' }, { word: 'Eventually', meaning: 'Sonunda, nihayetinde' }, { word: 'Extensively', meaning: 'Kapsamlı bir şekilde' }, { word: 'Firmly', meaning: 'Sıkıca, kesin olarak' }, { word: 'Initially', meaning: 'Başlangıçta' }, { word: 'Notably', meaning: 'Özellikle, bilhassa' }, { word: 'Precisely', meaning: 'Tam olarak' }, { word: 'Primarily', meaning: 'Öncelikle, temel olarak' }, { word: 'Profoundly', meaning: 'Derinden, büyük ölçüde' }, { word: 'Purely', meaning: 'Sadece, saf bir şekilde' }, { word: 'Relatively', meaning: 'Nispeten, oranla' }, { word: 'Severely', meaning: 'Şiddetli bir şekilde' }, { word: 'Significantly', meaning: 'Önemli ölçüde' }, { word: 'Substantially', meaning: 'Büyük ölçüde' }, { word: 'Thoroughly', meaning: 'Etraflıca, tamamen' }, { word: 'Ultimately', meaning: 'Sonuçta, eninde sonunda' }, { word: 'Virtually', meaning: 'Neredeyse, hemen hemen' }
+            ],
+            'Phrasal Verbs': [
+                { word: 'Account for', meaning: 'Açıklamak, sorumlu olmak' }, { word: 'Bring about', meaning: 'Neden olmak, sebep olmak' }, { word: 'Call for', meaning: 'Gerektirmek, çağrıda bulunmak' }, { word: 'Carry out', meaning: 'Yürütmek, uygulamak' }, { word: 'Come up with', meaning: '(Fikir, çözüm) bulmak' }, { word: 'Cut down on', meaning: 'Azaltmak, kısmak' }, { word: 'Do away with', meaning: 'Ortadan kaldırmak' }, { word: 'Draw on', meaning: 'Faydalanmak, yararlanmak' }, { word: 'Fall behind', meaning: 'Geride kalmak' }, { word: 'Figure out', meaning: 'Anlamak, çözmek' }, { word: 'Get rid of', meaning: 'Kurtulmak' }, { word: 'Give up', meaning: 'Vazgeçmek, bırakmak' }, { word: 'Go through', meaning: 'Yaşamak, (zor durumdan) geçmek' }, { word: 'Hand down', meaning: 'Nesilden nesile aktarmak' }, { word: 'Keep up with', meaning: 'Ayak uydurmak' }, { word: 'Look down on', meaning: 'Küçümsemek' }, { word: 'Make up for', meaning: 'Telafi etmek' }, { word: 'Pass into', meaning: '(Süte vb.) geçmek' }, { word: 'Put off', meaning: 'Ertelemek' }, { word: 'Put up with', meaning: 'Katlanmak, tahammül etmek' }, { word: 'Rely on', meaning: 'Güvenmek, bel bağlamak' }, { word: 'Result in', meaning: '...ile sonuçlanmak' }, { word: 'Run out of', meaning: 'Tüketmek, bitirmek' }, { word: 'Stem from', meaning: '-den kaynaklanmak' }, { word: 'Take on', meaning: 'Üstlenmek, (bir özellik) kazanmak' }, { word: 'Take over', meaning: 'Devralmak, yönetimi ele almak' }, { word: 'Turn down', meaning: 'Reddetmek, kısmak' }, { word: 'Work out', meaning: 'Çözmek, halletmek' }
+            ],
+            'Bağlaçlar': [
+                { word: 'According to', meaning: '-e göre' }, { word: 'Along with', meaning: 'ile birlikte' }, { word: 'Although / Even though', meaning: '-e rağmen' }, { word: 'As a result of', meaning: '-nın sonucu olarak' }, { word: 'As opposed to', meaning: '-nın aksine' }, { word: 'By means of', meaning: 'vasıtasıyla' }, { word: 'Contrary to', meaning: '-nın aksine' }, { word: 'Despite / In spite of', meaning: '-e rağmen' }, { word: 'Due to / Owing to', meaning: '-den dolayı, yüzünden' }, { word: 'However / Nevertheless', meaning: 'Ancak, yine de' }, { word: 'In case of', meaning: 'durumunda' }, { word: 'In terms of', meaning: 'açısından' }, { word: 'Instead of / Rather than', meaning: '-nın yerine' }, { word: 'On behalf of', meaning: 'adına' }, { word: 'Otherwise', meaning: 'Aksi takdirde' }, { word: 'Provided that / As long as', meaning: 'şartıyla, -dığı sürece' }, { word: 'Regardless of', meaning: '-e bakılmaksızın' }, { word: 'Thanks to', meaning: 'sayesinde' }, { word: 'Therefore / Thus / Hence', meaning: 'Bu nedenle, bu yüzden' }, { word: 'Unless', meaning: '-medikçe, -madıkça' }, { word: 'Whereas / While', meaning: '-iken, oysaki' }
+            ],
+        };
+        
+        for (const category in allWords) {
+            if (category !== 'Tümü') {
+                allWords[category].forEach(wordObj => {
+                    allWords['Tümü'].push({ ...wordObj, type: category.slice(0, -1).toLowerCase() });
+                });
+            }
+        }
+        
+        // --- Durum Değişkenleri ---
+        let currentMode = 'flashcard'; // 'flashcard' veya 'quiz'
+        let currentWords = [];
+        let currentIndex = 0;
+        let activeCategory = 'Tümü';
+
+        // Quiz Durum Değişkenleri
+        let quizWords = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        
+        // --- DOM Elementleri ---
+        const flashcardContainer = document.getElementById('flashcard-container');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results-container');
+        const flashcardModeBtn = document.getElementById('flashcard-mode-btn');
+        const quizModeBtn = document.getElementById('quiz-mode-btn');
+
+        // Flashcard Elementleri
+        const flashcard = document.getElementById('flashcard');
+        const wordEl = document.getElementById('word');
+        const meaningEl = document.getElementById('meaning');
+        const wordTypeEl = document.getElementById('word-type');
+        const progressEl = document.getElementById('progress');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const showAnswerBtn = document.getElementById('show-answer-btn');
+        const categoryButtonsContainer = document.getElementById('category-buttons');
+
+        // Quiz Elementleri
+        const quizProgressEl = document.getElementById('quiz-progress');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainerEl = document.getElementById('options-container');
+        const feedbackTextEl = document.getElementById('feedback-text');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        const restartQuizBtn = document.getElementById('restart-quiz-btn');
+        const finalScoreEl = document.getElementById('final-score');
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const resultMessageEl = document.getElementById('result-message');
+        
+        // --- Yardımcı Fonksiyonlar ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- Mod Değiştirme ---
+        function setMode(mode) {
+            currentMode = mode;
+            if (mode === 'flashcard') {
+                flashcardContainer.style.display = 'block';
+                quizContainer.style.display = 'none';
+                resultsContainer.style.display = 'none';
+                flashcardModeBtn.classList.add('bg-cyan-600', 'text-white');
+                flashcardModeBtn.classList.remove('bg-gray-700', 'text-gray-400');
+                quizModeBtn.classList.remove('bg-cyan-600', 'text-white');
+                quizModeBtn.classList.add('bg-gray-700', 'text-gray-400');
+                setupCategory(activeCategory); // Flashcard'ı yeniden kur
+            } else { // quiz
+                flashcardContainer.style.display = 'none';
+                startQuiz();
+                quizModeBtn.classList.add('bg-cyan-600', 'text-white');
+                quizModeBtn.classList.remove('bg-gray-700', 'text-gray-400');
+                flashcardModeBtn.classList.remove('bg-cyan-600', 'text-white');
+                flashcardModeBtn.classList.add('bg-gray-700', 'text-gray-400');
+            }
+        }
+        
+        // --- Flashcard Fonksiyonları ---
+        function displayWord() {
+            if (currentWords.length === 0) return;
+            flashcard.classList.remove('flipped');
+            const currentWord = currentWords[currentIndex];
+            wordEl.textContent = currentWord.word;
+            meaningEl.textContent = currentWord.meaning;
+            let typeText = currentWord.type || activeCategory.slice(0,-1).toLowerCase();
+            wordTypeEl.textContent = `(${typeText})`;
+            progressEl.textContent = `${currentIndex + 1} / ${currentWords.length}`;
+            prevBtn.disabled = currentIndex === 0;
+            showAnswerBtn.textContent = "Cevabı Göster";
+        }
+        
+        function flipCard() {
+            flashcard.classList.toggle('flipped');
+            showAnswerBtn.textContent = flashcard.classList.contains('flipped') ? "Kelimeyi Gizle" : "Cevabı Göster";
+        }
+        
+        function nextWord() {
+            if (currentIndex < currentWords.length - 1) {
+                currentIndex++;
+                displayWord();
+            }
+        }
+
+        function prevWord() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                displayWord();
+            }
+        }
+
+        // --- Test Fonksiyonları ---
+        function startQuiz() {
+            quizContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            score = 0;
+            currentQuestionIndex = 0;
+            quizWords = shuffleArray([...(allWords[activeCategory].length > 0 ? allWords[activeCategory] : allWords['Tümü'])]);
+            generateQuestion();
+        }
+
+        function generateQuestion() {
+            if (currentQuestionIndex >= quizWords.length) {
+                showResults();
+                return;
+            }
+            
+            const currentWordObj = quizWords[currentQuestionIndex];
+            questionTextEl.textContent = `"${currentWordObj.meaning}" kelimesinin İngilizce karşılığı nedir?`;
+            quizProgressEl.textContent = `Soru: ${currentQuestionIndex + 1} / ${quizWords.length} | Skor: ${score}`;
+            
+            // Seçenekleri oluştur
+            let options = [currentWordObj];
+            while (options.length < 4) {
+                const randomWord = quizWords[Math.floor(Math.random() * quizWords.length)];
+                if (!options.some(opt => opt.word === randomWord.word)) {
+                    options.push(randomWord);
+                }
+            }
+            
+            options = shuffleArray(options);
+            optionsContainerEl.innerHTML = '';
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option.word;
+                button.className = 'w-full text-left p-4 rounded-lg bg-gray-700 hover:bg-gray-600 transition duration-200';
+                button.onclick = () => checkAnswer(button, option, currentWordObj);
+                optionsContainerEl.appendChild(button);
+            });
+
+            feedbackTextEl.textContent = '';
+            nextQuestionBtn.classList.add('hidden');
+        }
+
+        function checkAnswer(button, selectedOption, correctOption) {
+            // Butonları devre dışı bırak
+            Array.from(optionsContainerEl.children).forEach(btn => {
+                btn.disabled = true;
+                // Doğru cevabı her zaman yeşil yap
+                if (btn.textContent === correctOption.word) {
+                    btn.classList.add('correct-answer');
+                }
+            });
+
+            if (selectedOption.word === correctOption.word) {
+                score++;
+                feedbackTextEl.textContent = 'Doğru!';
+                feedbackTextEl.className = 'text-lg font-semibold h-6 text-green-400';
+            } else {
+                button.classList.add('wrong-answer'); // Sadece yanlış seçileni kırmızı yap
+                feedbackTextEl.textContent = 'Yanlış!';
+                feedbackTextEl.className = 'text-lg font-semibold h-6 text-red-400';
+            }
+            quizProgressEl.textContent = `Soru: ${currentQuestionIndex + 1} / ${quizWords.length} | Skor: ${score}`;
+            nextQuestionBtn.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            generateQuestion();
+        }
+
+        function showResults() {
+            quizContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+            finalScoreEl.textContent = score;
+            totalQuestionsEl.textContent = quizWords.length;
+            const percentage = (score / quizWords.length) * 100;
+            let message = "";
+            if (percentage >= 90) message = "Harika iş! Kelimelere hakimsin.";
+            else if (percentage >= 70) message = "Çok iyi! Biraz daha tekrarla mükemmel olacak.";
+            else if (percentage >= 50) message = "İyi gidiyorsun, çalışmaya devam et.";
+            else message = "Tekrar etmekte fayda var. Pes etme!";
+            resultMessageEl.textContent = message;
+        }
+
+        // --- Genel Kurulum ---
+        function setupCategory(category) {
+             activeCategory = category;
+             document.querySelectorAll('#category-buttons button').forEach(btn => {
+                btn.className = 'px-4 py-2 rounded-lg font-semibold transition duration-200 bg-gray-700 text-gray-300 hover:bg-gray-600';
+                if (btn.dataset.category === category) {
+                    btn.className = 'px-4 py-2 rounded-lg font-semibold transition duration-200 bg-cyan-600 text-white';
+                }
+            });
+            
+            if (currentMode === 'flashcard') {
+                currentIndex = 0;
+                currentWords = shuffleArray([...(allWords[category].length > 0 ? allWords[category] : allWords['Tümü'])]);
+                displayWord();
+            } else {
+                startQuiz();
+            }
+        }
+
+        function createCategoryButtons() {
+            Object.keys(allWords).forEach(category => {
+                const button = document.createElement('button');
+                button.textContent = category;
+                button.dataset.category = category;
+                button.addEventListener('click', () => setupCategory(category));
+                categoryButtonsContainer.appendChild(button);
+            });
+        }
+        
+        // --- Event Listeners ---
+        flashcard.addEventListener('click', flipCard);
+        showAnswerBtn.addEventListener('click', flipCard);
+        nextBtn.addEventListener('click', nextWord);
+        prevBtn.addEventListener('click', prevWord);
+        flashcardModeBtn.addEventListener('click', () => setMode('flashcard'));
+        quizModeBtn.addEventListener('click', () => setMode('quiz'));
+        nextQuestionBtn.addEventListener('click', nextQuestion);
+        restartQuizBtn.addEventListener('click', startQuiz);
+        
+        // --- Başlangıç ---
+        createCategoryButtons();
+        setMode('flashcard'); // Başlangıç modu
+        setupCategory(activeCategory);
+
+    </script>
+</body>
+</html>
+
