@@ -48,10 +48,28 @@
         .correct-answer {
             background-color: #10b981 !important; /* Tailwind green-500 */
             border-color: #059669 !important; /* Tailwind green-600 */
+            transform: scale(1.02);
         }
         .wrong-answer {
             background-color: #ef4444 !important; /* Tailwind red-500 */
             border-color: #dc2626 !important; /* Tailwind red-600 */
+        }
+
+        /* Animasyonlar */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            80% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-popIn {
+            animation: popIn 0.3s ease-out forwards;
         }
     </style>
 </head>
@@ -273,6 +291,12 @@
             score = 0;
             currentQuestionIndex = 0;
             quizWords = shuffleArray([...(allWords[activeCategory].length > 0 ? allWords[activeCategory] : allWords['Tümü'])]);
+            
+            // Animasyonu ekle
+            quizContainer.classList.remove('animate-fadeIn');
+            void quizContainer.offsetWidth; // Reflow
+            quizContainer.classList.add('animate-fadeIn');
+
             generateQuestion();
         }
 
@@ -286,7 +310,6 @@
             questionTextEl.textContent = `"${currentWordObj.meaning}" kelimesinin İngilizce karşılığı nedir?`;
             quizProgressEl.textContent = `Soru: ${currentQuestionIndex + 1} / ${quizWords.length} | Skor: ${score}`;
             
-            // Seçenekleri oluştur
             let options = [currentWordObj];
             let allPossibleOptions = allWords['Tümü'];
             while (options.length < 4) {
@@ -302,7 +325,7 @@
             options.forEach(option => {
                 const button = document.createElement('button');
                 button.textContent = option.word;
-                button.className = 'w-full text-left p-4 rounded-lg bg-gray-700 hover:bg-gray-600 transition duration-200';
+                button.className = 'w-full text-left p-4 rounded-lg bg-gray-700 hover:bg-gray-600 transition duration-200 transform hover:scale-105';
                 button.onclick = () => checkAnswer(button, option, currentWordObj);
                 optionsContainerEl.appendChild(button);
             });
@@ -312,10 +335,8 @@
         }
 
         function checkAnswer(button, selectedOption, correctOption) {
-            // Butonları devre dışı bırak
             Array.from(optionsContainerEl.children).forEach(btn => {
                 btn.disabled = true;
-                // Doğru cevabı her zaman yeşil yap
                 if (btn.textContent === correctOption.word) {
                     btn.classList.add('correct-answer');
                 }
@@ -324,14 +345,18 @@
             if (selectedOption.word === correctOption.word) {
                 score++;
                 feedbackTextEl.textContent = 'Doğru!';
-                feedbackTextEl.className = 'text-lg font-semibold h-6 text-green-400';
+                feedbackTextEl.className = 'text-lg font-semibold h-6 text-green-400 animate-popIn';
             } else {
-                button.classList.add('wrong-answer'); // Sadece yanlış seçileni kırmızı yap
+                button.classList.add('wrong-answer');
                 feedbackTextEl.textContent = 'Yanlış!';
-                feedbackTextEl.className = 'text-lg font-semibold h-6 text-red-400';
+                feedbackTextEl.className = 'text-lg font-semibold h-6 text-red-400 animate-popIn';
             }
             quizProgressEl.textContent = `Soru: ${currentQuestionIndex + 1} / ${quizWords.length} | Skor: ${score}`;
+            
             nextQuestionBtn.classList.remove('hidden');
+            nextQuestionBtn.classList.remove('animate-fadeIn');
+            void nextQuestionBtn.offsetWidth;
+            nextQuestionBtn.classList.add('animate-fadeIn');
         }
 
         function nextQuestion() {
@@ -342,6 +367,10 @@
         function showResults() {
             quizContainer.style.display = 'none';
             resultsContainer.style.display = 'block';
+            resultsContainer.classList.remove('animate-fadeIn');
+            void resultsContainer.offsetWidth;
+            resultsContainer.classList.add('animate-fadeIn');
+
             finalScoreEl.textContent = score;
             totalQuestionsEl.textContent = quizWords.length;
             const percentage = (score / quizWords.length) * 100;
